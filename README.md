@@ -103,6 +103,11 @@ python main.py
 - **`Template <name> not found`** — The template name doesn't match a directory in [`pyfenn/templates`](https://github.com/pyfenn/templates). Run `fenn list` to see valid names.
 - **`Refusing to pull into non-empty directory`** — Either pull into an empty directory, point `path` at a fresh one, or pass `--force` to overwrite.
 - **`Network error` / `Failed to check template existence`** — Check connectivity. The CLI uses the unauthenticated GitHub API to look up and download templates, which is subject to GitHub's rate limit.
+- **`fenn: command not found` after installation** — Your Python scripts directory may not be on your `PATH`. Try running with `python -m fenn` instead, or add the scripts directory to your PATH. On most systems: `export PATH="$HOME/.local/bin:$PATH"`.
+- **`fenn.yaml not found` when running `main.py`** — Make sure you are running the script from the same directory that contains `fenn.yaml`. fenn looks for the config file in the current working directory by default.
+- **`KeyError` on `args['section']['key']`** — The key referenced in your code does not exist in `fenn.yaml`. Double-check spelling in both files. YAML is case-sensitive.
+- **`ModuleNotFoundError` after pulling a template** — Install the template's dependencies first: `pip install -r requirements.txt`.
+- **GitHub API rate limit exceeded during `fenn list` or `fenn pull`** — The unauthenticated GitHub API allows 60 requests/hour per IP. Wait a few minutes and try again, or set a `GITHUB_TOKEN` environment variable if your fenn version supports authenticated requests.
 
 ### Configuration
 
@@ -211,6 +216,17 @@ def main(args):
     trainer.fit(train_loader, epochs=10, val_loader=val_loader)
     preds = trainer.predict(test_loader)
 ```
+
+## CLI Reference
+
+A quick reference for all available fenn CLI commands.
+
+| Command | Description |
+|---|---|
+| `fenn list` | List all available templates from [`pyfenn/templates`](https://github.com/pyfenn/templates) |
+| `fenn pull <template>` | Pull a template into the current directory |
+| `fenn pull <template> <path>` | Pull a template into the specified path (created if missing) |
+| `fenn pull <template> --force` | Pull a template and overwrite existing files |
 
 ## Cite fenn
 
