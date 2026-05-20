@@ -45,6 +45,18 @@ class Fenn:
 
         self._disable_disclaimer = False
 
+        self._load_configuration()
+    
+    def _load_configuration(self):
+        # Load config
+        self._parser.config_file = (
+            self._config_file if self._config_file is not None else "fenn.yaml"
+        )
+        self._args = self._parser.load_configuration()
+        self._args["session_id"] = self._session_id
+
+
+
     def entrypoint(self, entrypoint_fn: Callable) -> Callable:
         """Register the application's main function.
 
@@ -95,13 +107,7 @@ class Fenn:
                 f"Please use {Fore.LIGHTYELLOW_EX}@app.entrypoint{Style.RESET_ALL} "
                 "to register your main function."
             )
-
-        # Load config
-        self._parser.config_file = (
-            self._config_file if self._config_file is not None else "fenn.yaml"
-        )
-        self._args = self._parser.load_configuration()
-        self._args["session_id"] = self._session_id
+    
         Exporter().configure(self._args)
 
         # Start logging
@@ -135,10 +141,16 @@ class Fenn:
                 Defaults to ``"fenn.yaml"`` in the working directory.
         """
         self._config_file = config_file
+        self._load_configuration()
 
     def get_environ(self, key:str) -> str:
         return self._keystore.get_key(key)
 
+    @property
+    def parameters(self) -> map:
+        """"""
+        return self._args
+    
     @property
     def config_file(self) -> str:
         """Path to the active YAML configuration file."""
