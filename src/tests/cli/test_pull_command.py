@@ -56,7 +56,7 @@ class TestPullCommand:
         assert (tmp_path / ".gitignore").exists()
         assert (tmp_path / "main.py").read_text() == "print('hello')"
 
-    def test_pull_dir_does_not_exist(self, tmp_path, requests_mock):
+    def test_pull_target_dir_does_not_exist(self, tmp_path, requests_mock):
         """Test creation of target dir when passed as pull arg but target dir does not exist."""
         args = Mock()
         args.template = "base"
