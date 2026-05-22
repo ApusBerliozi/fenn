@@ -496,6 +496,9 @@ tr:hover td { background: var(--surface-2); }
 .badge-running  { background: var(--success-bg);  color: var(--success); }
 .badge-completed{ background: var(--info-bg);      color: var(--info); }
 .badge-failed   { background: var(--error-bg);     color: var(--error); }
+.badge-crashed  { background: var(--warning-bg);   color: var(--warning); }
+
+.has-crashed    { color: var(--warning); }
 
 .badge-info     { background: var(--info-bg);      color: var(--info); }
 .badge-warning  { background: var(--warning-bg);   color: var(--warning); }

@@ -31,6 +31,10 @@
     <div class="stat-label">Exceptions</div>
     <div class="stat-value">{{ total_exceptions }}</div>
   </div>
+  <div class="stat-card warning">
+    <div class="stat-label">Crashed</div>
+    <div class="stat-value">{{ crashed_sessions }}</div>
+  </div>
 </div>
 
 {% if projects %}
@@ -58,6 +62,9 @@
       {% endif %}
       {% if p.exception_count > 0 %}
       <span class="project-stat has-error">✕ {{ p.exception_count }}</span>
+      {% endif %}
+      {% if p.crashed_count > 0 %}
+      <span class="project-stat has-crashed">⊘ {{ p.crashed_count }}</span>
       {% endif %}
     </div>
 
@@ -103,8 +110,12 @@
           <td class="td-mono">{{ s.started }}</td>
           <td class="td-mono">{{ s.duration_s | duration }}</td>
           <td>
-            {% if s.status == 'failed' %}
+            {% if s.status == 'crashed' %}
+            <span class="badge badge-crashed">crashed</span>
+            {% elif s.status == 'failed' %}
             <span class="badge badge-failed">failed</span>
+            {% elif s.status == 'running' %}
+            <span class="badge badge-running"><span class="pulse-dot"></span>running</span>
             {% else %}
             <span class="badge badge-completed">completed</span>
             {% endif %}

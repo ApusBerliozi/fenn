@@ -26,6 +26,10 @@
     <div class="stat-value">{{ running_sessions }}</div>
   </div>
   <div class="stat-card warning">
+    <div class="stat-label">Crashed</div>
+    <div class="stat-value">{{ crashed_sessions }}</div>
+  </div>
+  <div class="stat-card warning">
     <div class="stat-label">Warnings</div>
     <div class="stat-value">{{ total_warnings }}</div>
   </div>
@@ -70,6 +74,8 @@
             <span class="badge badge-running">
               <span class="pulse-dot"></span>running
             </span>
+            {% elif s.status == 'crashed' %}
+            <span class="badge badge-crashed">crashed</span>
             {% elif s.status == 'failed' %}
             <span class="badge badge-failed">failed</span>
             {% else %}

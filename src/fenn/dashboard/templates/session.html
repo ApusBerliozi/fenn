@@ -23,7 +23,13 @@
 <div class="page-header">
   <h1 class="page-title" style="font-family:var(--font-mono); font-size:18px; letter-spacing:0;">
     {{ session_id }}
-    {% if status == 'failed' %}
+    {% if status == 'crashed' %}
+    <span class="badge badge-crashed" style="font-size:12px; margin-left:8px; vertical-align:middle;">crashed</span>
+    {% elif status == 'running' %}
+    <span class="badge badge-running" style="font-size:12px; margin-left:8px; vertical-align:middle;">
+      <span class="pulse-dot"></span>running
+    </span>
+    {% elif status == 'failed' %}
     <span class="badge badge-failed" style="font-size:12px; margin-left:8px; vertical-align:middle;">failed</span>
     {% else %}
     <span class="badge badge-completed" style="font-size:12px; margin-left:8px; vertical-align:middle;">completed</span>

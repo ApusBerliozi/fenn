@@ -51,11 +51,11 @@ def execute(args: argparse.Namespace) -> None:
         )
         sys.exit(1)
 
-    has_visible_files = any(
+    has_visible_files = target_dir.exists() and any(
         not item.name.startswith(".") for item in target_dir.iterdir()
     )
 
-    if target_dir.exists() and has_visible_files and not force:
+    if has_visible_files and not force:
         if HAS_RICH:
             Console().print(
                 f"[red]Refusing to pull into non-empty directory [yellow]{target_dir}[/yellow].\nUse [yellow]--force[/yellow] to override existing files.[/red]"
