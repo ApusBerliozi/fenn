@@ -117,9 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     auth_subparsers = p_auth.add_subparsers(dest="auth_command", required=True)
 
-    p_login = auth_subparsers.add_parser(
-        "login", help="Save an API key for a profile"
-    )
+    p_login = auth_subparsers.add_parser("login", help="Save an API key for a profile")
     p_login.add_argument(
         "--profile", default=None, help="Profile name (default: 'default')"
     )

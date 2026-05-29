@@ -6,10 +6,13 @@ from fenn.notification.service import Service
 class Resend(Service):
     """Resend email notification service."""
 
-    def __init__(self,  api_key:str,
-                        from_email:str,
-                        to_emails_raw:str,
-                        subject: str = "Notification from fenn"):
+    def __init__(
+        self,
+        api_key: str,
+        from_email: str,
+        to_emails_raw: str,
+        subject: str = "Notification from fenn",
+    ):
         """Initialize Resend service.
 
         Args:

@@ -2,6 +2,7 @@ from typing import Iterable, List, Type
 
 from .service import Service
 
+
 class Notifier:
     """Central notification manager that handles multiple notification services."""
 

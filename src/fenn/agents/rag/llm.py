@@ -1,7 +1,6 @@
 import os
 import time
 
-
 # ── LLM Providers ─────────────────────────────────────────────────────────────
 #
 # All providers use an OpenAI-compatible chat completions API.
@@ -9,80 +8,87 @@ import time
 #
 PROVIDERS = {
     # ── Aggregators (many models, one key) ────────────────
-    "openrouter":  "https://openrouter.ai/api/v1",
-    "together":    "https://api.together.xyz/v1",
-    "groq":        "https://api.groq.com/openai/v1",
-    "fireworks":   "https://api.fireworks.ai/inference/v1",
-    "deepinfra":   "https://api.deepinfra.com/v1/openai",
-    "anyscale":    "https://api.endpoints.anyscale.com/v1",
-    "perplexity":  "https://api.perplexity.ai",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "together": "https://api.together.xyz/v1",
+    "groq": "https://api.groq.com/openai/v1",
+    "fireworks": "https://api.fireworks.ai/inference/v1",
+    "deepinfra": "https://api.deepinfra.com/v1/openai",
+    "anyscale": "https://api.endpoints.anyscale.com/v1",
+    "perplexity": "https://api.perplexity.ai",
     # ── Direct providers ──────────────────────────────────
-    "openai":      "https://api.openai.com/v1",
-    "anthropic":   "https://api.anthropic.com/v1",
-    "gemini":      "https://generativelanguage.googleapis.com/v1beta/openai",
-    "mistral":     "https://api.mistral.ai/v1",
-    "cohere":      "https://api.cohere.ai/compatibility/v1",
-    "xai":         "https://api.x.ai/v1",
-    "deepseek":    "https://api.deepseek.com/v1",
-    "cerebras":    "https://api.cerebras.ai/v1",
-    "nvidia":      "https://integrate.api.nvidia.com/v1",
+    "openai": "https://api.openai.com/v1",
+    "anthropic": "https://api.anthropic.com/v1",
+    "gemini": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "mistral": "https://api.mistral.ai/v1",
+    "cohere": "https://api.cohere.ai/compatibility/v1",
+    "xai": "https://api.x.ai/v1",
+    "deepseek": "https://api.deepseek.com/v1",
+    "cerebras": "https://api.cerebras.ai/v1",
+    "nvidia": "https://integrate.api.nvidia.com/v1",
     # ── Local (no key, no internet) ───────────────────────
-    "ollama":      "http://localhost:11434/v1",
-    "lmstudio":    "http://localhost:1234/v1",
-    "llamacpp":    "http://localhost:8080/v1",
+    "ollama": "http://localhost:11434/v1",
+    "lmstudio": "http://localhost:1234/v1",
+    "llamacpp": "http://localhost:8080/v1",
 }
 
 # Default model for each provider when model= is not specified
 DEFAULT_MODELS = {
-    "openrouter":  "arcee-ai/trinity-large-preview:free",   # free tier
-    "together":    "meta-llama/Llama-3-8b-chat-hf",
-    "groq":        "llama-3.1-8b-instant",
-    "fireworks":   "accounts/fireworks/models/llama-v3p1-8b-instruct",
-    "deepinfra":   "meta-llama/Meta-Llama-3.1-8B-Instruct",
-    "perplexity":  "llama-3.1-sonar-small-128k-online",
-    "openai":      "gpt-4o-mini",
-    "anthropic":   "claude-3-5-haiku-20241022",
-    "gemini":      "gemini-2.0-flash",
-    "mistral":     "mistral-small-latest",
-    "cohere":      "command-r-plus",
-    "xai":         "grok-beta",
-    "deepseek":    "deepseek-chat",
-    "cerebras":    "llama3.1-8b",
-    "nvidia":      "meta/llama-3.1-8b-instruct",
-    "ollama":      "llama3",
-    "lmstudio":    "local-model",
-    "llamacpp":    "local-model",
+    "openrouter": "arcee-ai/trinity-large-preview:free",  # free tier
+    "together": "meta-llama/Llama-3-8b-chat-hf",
+    "groq": "llama-3.1-8b-instant",
+    "fireworks": "accounts/fireworks/models/llama-v3p1-8b-instruct",
+    "deepinfra": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "perplexity": "llama-3.1-sonar-small-128k-online",
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-3-5-haiku-20241022",
+    "gemini": "gemini-2.0-flash",
+    "mistral": "mistral-small-latest",
+    "cohere": "command-r-plus",
+    "xai": "grok-beta",
+    "deepseek": "deepseek-chat",
+    "cerebras": "llama3.1-8b",
+    "nvidia": "meta/llama-3.1-8b-instruct",
+    "ollama": "llama3",
+    "lmstudio": "local-model",
+    "llamacpp": "local-model",
 }
 
 # Environment variable name for each provider's API key
 ENV_KEYS = {
-    "openrouter":  "OPENROUTER_API_KEY",
-    "together":    "TOGETHER_API_KEY",
-    "groq":        "GROQ_API_KEY",
-    "fireworks":   "FIREWORKS_API_KEY",
-    "deepinfra":   "DEEPINFRA_API_KEY",
-    "anyscale":    "ANYSCALE_API_KEY",
-    "perplexity":  "PERPLEXITY_API_KEY",
-    "openai":      "OPENAI_API_KEY",
-    "anthropic":   "ANTHROPIC_API_KEY",
-    "gemini":      "GEMINI_API_KEY",
-    "mistral":     "MISTRAL_API_KEY",
-    "cohere":      "COHERE_API_KEY",
-    "xai":         "XAI_API_KEY",
-    "deepseek":    "DEEPSEEK_API_KEY",
-    "cerebras":    "CEREBRAS_API_KEY",
-    "nvidia":      "NVIDIA_API_KEY",
-    "ollama":      None,   # local, no key
-    "lmstudio":    None,   # local, no key
-    "llamacpp":    None,   # local, no key
+    "openrouter": "OPENROUTER_API_KEY",
+    "together": "TOGETHER_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "fireworks": "FIREWORKS_API_KEY",
+    "deepinfra": "DEEPINFRA_API_KEY",
+    "anyscale": "ANYSCALE_API_KEY",
+    "perplexity": "PERPLEXITY_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+    "mistral": "MISTRAL_API_KEY",
+    "cohere": "COHERE_API_KEY",
+    "xai": "XAI_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
+    "cerebras": "CEREBRAS_API_KEY",
+    "nvidia": "NVIDIA_API_KEY",
+    "ollama": None,  # local, no key
+    "lmstudio": None,  # local, no key
+    "llamacpp": None,  # local, no key
 }
 
 # Providers that run locally and never need an API key
 LOCAL_PROVIDERS = {"ollama", "lmstudio", "llamacpp"}
 
 
-def ask(prompt, model=None, model_api_key=None, base_url=None,
-        model_provider=None, retries=3, schema=None):
+def ask(
+    prompt,
+    model=None,
+    model_api_key=None,
+    base_url=None,
+    model_provider=None,
+    retries=3,
+    schema=None,
+):
     """
     Send a prompt to an LLM and return the response.
 
@@ -112,10 +118,10 @@ def ask(prompt, model=None, model_api_key=None, base_url=None,
         from openai import OpenAI, RateLimitError
 
         model_provider = _detect_provider(model_provider, model, base_url)
-        model          = model    or DEFAULT_MODELS.get(model_provider, "gpt-4o-mini")
-        base_url       = base_url or PROVIDERS.get(model_provider, PROVIDERS["openrouter"])
-        model_api_key  = _resolve_key(model_api_key, model_provider)
-        client         = OpenAI(api_key=model_api_key or "local", base_url=base_url)
+        model = model or DEFAULT_MODELS.get(model_provider, "gpt-4o-mini")
+        base_url = base_url or PROVIDERS.get(model_provider, PROVIDERS["openrouter"])
+        model_api_key = _resolve_key(model_api_key, model_provider)
+        client = OpenAI(api_key=model_api_key or "local", base_url=base_url)
 
         if schema:
             prompt += (
@@ -134,20 +140,22 @@ def ask(prompt, model=None, model_api_key=None, base_url=None,
                 text = response.choices[0].message.content
                 if schema:
                     import json
+
                     return schema.model_validate(json.loads(text))
                 return text
             except RateLimitError:
                 if attempt < retries - 1:
                     wait = 5 * (attempt + 1)
-                    print(f"[cofone] rate limit hit, retrying in {wait}s... ({attempt+1}/{retries})")
+                    print(
+                        f"[cofone] rate limit hit, retrying in {wait}s... ({attempt + 1}/{retries})"
+                    )
                     time.sleep(wait)
                 else:
                     raise
 
     except ImportError:
         raise ImportError(
-            "[cofone] 'openai' package not found.\n"
-            "Run: pip install openai"
+            "[cofone] 'openai' package not found.\nRun: pip install openai"
         )
 
 
@@ -177,10 +185,10 @@ def stream(prompt, model=None, model_api_key=None, base_url=None, model_provider
         from openai import OpenAI
 
         model_provider = _detect_provider(model_provider, model, base_url)
-        model          = model    or DEFAULT_MODELS.get(model_provider, "gpt-4o-mini")
-        base_url       = base_url or PROVIDERS.get(model_provider, PROVIDERS["openrouter"])
-        model_api_key  = _resolve_key(model_api_key, model_provider)
-        client         = OpenAI(api_key=model_api_key or "local", base_url=base_url)
+        model = model or DEFAULT_MODELS.get(model_provider, "gpt-4o-mini")
+        base_url = base_url or PROVIDERS.get(model_provider, PROVIDERS["openrouter"])
+        model_api_key = _resolve_key(model_api_key, model_provider)
+        client = OpenAI(api_key=model_api_key or "local", base_url=base_url)
 
         response = client.chat.completions.create(
             model=model,
@@ -196,8 +204,7 @@ def stream(prompt, model=None, model_api_key=None, base_url=None, model_provider
 
     except ImportError:
         raise ImportError(
-            "[cofone] 'openai' package not found.\n"
-            "Run: pip install openai"
+            "[cofone] 'openai' package not found.\nRun: pip install openai"
         )
 
 
@@ -216,15 +223,24 @@ def _detect_provider(model_provider, model, base_url):
                 return name
         return "openrouter"
     if model:
-        if model.startswith(("gpt-", "o1-", "o3-", "o4-")):    return "openai"
-        if model.startswith("gemini"):                          return "gemini"
-        if model.startswith("claude"):                          return "anthropic"
-        if model.startswith(("mistral", "codestral")):          return "mistral"
-        if model.startswith("command"):                         return "cohere"
-        if model.startswith("grok"):                            return "xai"
-        if model.startswith("deepseek"):                        return "deepseek"
-        if model.startswith(("llama", "mixtral")):              return "groq"
-        if "/" in model:                                        return "openrouter"
+        if model.startswith(("gpt-", "o1-", "o3-", "o4-")):
+            return "openai"
+        if model.startswith("gemini"):
+            return "gemini"
+        if model.startswith("claude"):
+            return "anthropic"
+        if model.startswith(("mistral", "codestral")):
+            return "mistral"
+        if model.startswith("command"):
+            return "cohere"
+        if model.startswith("grok"):
+            return "xai"
+        if model.startswith("deepseek"):
+            return "deepseek"
+        if model.startswith(("llama", "mixtral")):
+            return "groq"
+        if "/" in model:
+            return "openrouter"
     return "openrouter"
 
 

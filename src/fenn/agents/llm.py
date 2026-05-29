@@ -2,68 +2,68 @@ import os
 import time
 
 PROVIDERS = {
-    "openrouter":  "https://openrouter.ai/api/v1",
-    "together":    "https://api.together.xyz/v1",
-    "groq":        "https://api.groq.com/openai/v1",
-    "fireworks":   "https://api.fireworks.ai/inference/v1",
-    "deepinfra":   "https://api.deepinfra.com/v1/openai",
-    "anyscale":    "https://api.endpoints.anyscale.com/v1",
-    "perplexity":  "https://api.perplexity.ai",
-    "openai":      "https://api.openai.com/v1",
-    "anthropic":   "https://api.anthropic.com/v1",
-    "gemini":      "https://generativelanguage.googleapis.com/v1beta/openai",
-    "mistral":     "https://api.mistral.ai/v1",
-    "cohere":      "https://api.cohere.ai/compatibility/v1",
-    "xai":         "https://api.x.ai/v1",
-    "deepseek":    "https://api.deepseek.com/v1",
-    "cerebras":    "https://api.cerebras.ai/v1",
-    "nvidia":      "https://integrate.api.nvidia.com/v1",
-    "ollama":      "http://localhost:11434/v1",
-    "lmstudio":    "http://localhost:1234/v1",
-    "llamacpp":    "http://localhost:8080/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "together": "https://api.together.xyz/v1",
+    "groq": "https://api.groq.com/openai/v1",
+    "fireworks": "https://api.fireworks.ai/inference/v1",
+    "deepinfra": "https://api.deepinfra.com/v1/openai",
+    "anyscale": "https://api.endpoints.anyscale.com/v1",
+    "perplexity": "https://api.perplexity.ai",
+    "openai": "https://api.openai.com/v1",
+    "anthropic": "https://api.anthropic.com/v1",
+    "gemini": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "mistral": "https://api.mistral.ai/v1",
+    "cohere": "https://api.cohere.ai/compatibility/v1",
+    "xai": "https://api.x.ai/v1",
+    "deepseek": "https://api.deepseek.com/v1",
+    "cerebras": "https://api.cerebras.ai/v1",
+    "nvidia": "https://integrate.api.nvidia.com/v1",
+    "ollama": "http://localhost:11434/v1",
+    "lmstudio": "http://localhost:1234/v1",
+    "llamacpp": "http://localhost:8080/v1",
 }
 
 DEFAULT_MODELS = {
-    "openrouter":  "arcee-ai/trinity-large-preview:free",
-    "together":    "meta-llama/Llama-3-8b-chat-hf",
-    "groq":        "llama-3.1-8b-instant",
-    "fireworks":   "accounts/fireworks/models/llama-v3p1-8b-instruct",
-    "deepinfra":   "meta-llama/Meta-Llama-3.1-8B-Instruct",
-    "perplexity":  "llama-3.1-sonar-small-128k-online",
-    "openai":      "gpt-4o-mini",
-    "anthropic":   "claude-3-5-haiku-20241022",
-    "gemini":      "gemini-2.0-flash",
-    "mistral":     "mistral-small-latest",
-    "cohere":      "command-r-plus",
-    "xai":         "grok-beta",
-    "deepseek":    "deepseek-chat",
-    "cerebras":    "llama3.1-8b",
-    "nvidia":      "meta/llama-3.1-8b-instruct",
-    "ollama":      "llama3",
-    "lmstudio":    "local-model",
-    "llamacpp":    "local-model",
+    "openrouter": "arcee-ai/trinity-large-preview:free",
+    "together": "meta-llama/Llama-3-8b-chat-hf",
+    "groq": "llama-3.1-8b-instant",
+    "fireworks": "accounts/fireworks/models/llama-v3p1-8b-instruct",
+    "deepinfra": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "perplexity": "llama-3.1-sonar-small-128k-online",
+    "openai": "gpt-4o-mini",
+    "anthropic": "claude-3-5-haiku-20241022",
+    "gemini": "gemini-2.0-flash",
+    "mistral": "mistral-small-latest",
+    "cohere": "command-r-plus",
+    "xai": "grok-beta",
+    "deepseek": "deepseek-chat",
+    "cerebras": "llama3.1-8b",
+    "nvidia": "meta/llama-3.1-8b-instruct",
+    "ollama": "llama3",
+    "lmstudio": "local-model",
+    "llamacpp": "local-model",
 }
 
 ENV_KEYS = {
-    "openrouter":  "OPENROUTER_API_KEY",
-    "together":    "TOGETHER_API_KEY",
-    "groq":        "GROQ_API_KEY",
-    "fireworks":   "FIREWORKS_API_KEY",
-    "deepinfra":   "DEEPINFRA_API_KEY",
-    "anyscale":    "ANYSCALE_API_KEY",
-    "perplexity":  "PERPLEXITY_API_KEY",
-    "openai":      "OPENAI_API_KEY",
-    "anthropic":   "ANTHROPIC_API_KEY",
-    "gemini":      "GEMINI_API_KEY",
-    "mistral":     "MISTRAL_API_KEY",
-    "cohere":      "COHERE_API_KEY",
-    "xai":         "XAI_API_KEY",
-    "deepseek":    "DEEPSEEK_API_KEY",
-    "cerebras":    "CEREBRAS_API_KEY",
-    "nvidia":      "NVIDIA_API_KEY",
-    "ollama":      None,
-    "lmstudio":    None,
-    "llamacpp":    None,
+    "openrouter": "OPENROUTER_API_KEY",
+    "together": "TOGETHER_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "fireworks": "FIREWORKS_API_KEY",
+    "deepinfra": "DEEPINFRA_API_KEY",
+    "anyscale": "ANYSCALE_API_KEY",
+    "perplexity": "PERPLEXITY_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+    "mistral": "MISTRAL_API_KEY",
+    "cohere": "COHERE_API_KEY",
+    "xai": "XAI_API_KEY",
+    "deepseek": "DEEPSEEK_API_KEY",
+    "cerebras": "CEREBRAS_API_KEY",
+    "nvidia": "NVIDIA_API_KEY",
+    "ollama": None,
+    "lmstudio": None,
+    "llamacpp": None,
 }
 
 LOCAL_PROVIDERS = {"ollama", "lmstudio", "llamacpp"}
@@ -78,15 +78,24 @@ def _detect_provider(provider, model, base_url):
                 return name
         return "openrouter"
     if model:
-        if model.startswith(("gpt-", "o1-", "o3-", "o4-")): return "openai"
-        if model.startswith("gemini"):                        return "gemini"
-        if model.startswith("claude"):                        return "anthropic"
-        if model.startswith(("mistral", "codestral")):        return "mistral"
-        if model.startswith("command"):                       return "cohere"
-        if model.startswith("grok"):                          return "xai"
-        if model.startswith("deepseek"):                      return "deepseek"
-        if model.startswith(("llama", "mixtral")):            return "groq"
-        if "/" in model:                                      return "openrouter"
+        if model.startswith(("gpt-", "o1-", "o3-", "o4-")):
+            return "openai"
+        if model.startswith("gemini"):
+            return "gemini"
+        if model.startswith("claude"):
+            return "anthropic"
+        if model.startswith(("mistral", "codestral")):
+            return "mistral"
+        if model.startswith("command"):
+            return "cohere"
+        if model.startswith("grok"):
+            return "xai"
+        if model.startswith("deepseek"):
+            return "deepseek"
+        if model.startswith(("llama", "mixtral")):
+            return "groq"
+        if "/" in model:
+            return "openrouter"
     return "openrouter"
 
 
@@ -110,11 +119,15 @@ class LLMClient:
         Custom API base URL. Overrides the provider's default endpoint.
     """
 
-    def __init__(self, provider=None, model=None, api_key=None, api_key_env=None, base_url=None):
+    def __init__(
+        self, provider=None, model=None, api_key=None, api_key_env=None, base_url=None
+    ):
         self.provider = _detect_provider(provider, model, base_url)
-        self.model    = model    or DEFAULT_MODELS.get(self.provider, "gpt-4o-mini")
-        self.base_url = base_url or PROVIDERS.get(self.provider, PROVIDERS["openrouter"])
-        self.api_key  = self._resolve_key(api_key, api_key_env)
+        self.model = model or DEFAULT_MODELS.get(self.provider, "gpt-4o-mini")
+        self.base_url = base_url or PROVIDERS.get(
+            self.provider, PROVIDERS["openrouter"]
+        )
+        self.api_key = self._resolve_key(api_key, api_key_env)
 
     def _resolve_key(self, api_key, api_key_env):
         if api_key:
@@ -135,9 +148,12 @@ class LLMClient:
     def _openai_client(self):
         try:
             from openai import OpenAI
+
             return OpenAI(api_key=self.api_key or "local", base_url=self.base_url)
         except ImportError:
-            raise ImportError("[fenn] 'openai' package not found. Run: pip install openai")
+            raise ImportError(
+                "[fenn] 'openai' package not found. Run: pip install openai"
+            )
 
     def chat_complete(self, messages, schema=None, retries=3):
         """
@@ -159,10 +175,14 @@ class LLMClient:
         try:
             from openai import RateLimitError
         except ImportError:
-            raise ImportError("[fenn] 'openai' package not found. Run: pip install openai")
+            raise ImportError(
+                "[fenn] 'openai' package not found. Run: pip install openai"
+            )
 
         client = self._openai_client()
-        msgs   = [dict(m) for m in messages]  # shallow-copy to avoid mutating caller's list
+        msgs = [
+            dict(m) for m in messages
+        ]  # shallow-copy to avoid mutating caller's list
         kwargs = dict(model=self.model, messages=msgs)
 
         if schema:
@@ -179,12 +199,15 @@ class LLMClient:
                 text = response.choices[0].message.content
                 if schema:
                     import json
+
                     return schema.model_validate(json.loads(text))
                 return text
             except RateLimitError:
                 if attempt < retries - 1:
                     wait = 5 * (attempt + 1)
-                    print(f"[fenn] rate limit hit, retrying in {wait}s... ({attempt + 1}/{retries})")
+                    print(
+                        f"[fenn] rate limit hit, retrying in {wait}s... ({attempt + 1}/{retries})"
+                    )
                     time.sleep(wait)
                 else:
                     raise
@@ -206,7 +229,9 @@ class LLMClient:
         -------
         str or pydantic.BaseModel
         """
-        return self.chat_complete([{"role": "user", "content": prompt}], schema=schema, retries=retries)
+        return self.chat_complete(
+            [{"role": "user", "content": prompt}], schema=schema, retries=retries
+        )
 
     def stream(self, prompt):
         """

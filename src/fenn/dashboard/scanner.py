@@ -216,9 +216,7 @@ class FennScanner:
         }
 
     @staticmethod
-    def _refresh_running_status(
-        parsed: Dict[str, Any], mtime: float
-    ) -> Dict[str, Any]:
+    def _refresh_running_status(parsed: Dict[str, Any], mtime: float) -> Dict[str, Any]:
         """Re-evaluate stale "running" sessions against the current timeout.
 
         Cached results are reused across requests, but the running→crashed
@@ -349,16 +347,12 @@ class FennScanner:
         responsible for converting these into HTTP-shaped errors.
         """
         if status is not None and status not in _VALID_STATUSES:
-            raise ValueError(
-                f"status must be one of {list(_VALID_STATUSES)}"
-            )
+            raise ValueError(f"status must be one of {list(_VALID_STATUSES)}")
 
         descending = sort.startswith("-")
         field = sort[1:] if descending else sort
         if field not in _VALID_SORT_FIELDS:
-            raise ValueError(
-                f"sort field must be one of {list(_VALID_SORT_FIELDS)}"
-            )
+            raise ValueError(f"sort field must be one of {list(_VALID_SORT_FIELDS)}")
 
         sessions = self.get_all_sessions()
         if project:

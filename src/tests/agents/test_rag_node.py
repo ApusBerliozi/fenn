@@ -1,7 +1,7 @@
-import tempfile
 import textwrap
-from pathlib import Path
+
 import pytest
+
 from fenn.agents import Flow
 from fenn.agents.rag import RAGNode
 
@@ -28,6 +28,7 @@ def knowledge_dir(tmp_path):
 
 # ── Construction / indexing ────────────────────────────────────────────────────
 
+
 def test_ragnode_indexes_on_init(knowledge_dir):
     node = RAGNode(sources=str(knowledge_dir))
     assert len(node._retriever.chunks) > 0
@@ -43,6 +44,7 @@ def test_ragnode_add_source(tmp_path):
 
 # ── BM25 retrieval via exec ────────────────────────────────────────────────────
 
+
 def test_ragnode_exec_returns_chunks(knowledge_dir):
     node = RAGNode(sources=str(knowledge_dir), top_k=3)
     chunks = node.exec("Python framework")
@@ -53,10 +55,13 @@ def test_ragnode_exec_returns_chunks(knowledge_dir):
 def test_ragnode_retrieves_relevant_chunk(knowledge_dir):
     node = RAGNode(sources=str(knowledge_dir), top_k=5)
     chunks = node.exec("LLMClient provider")
-    assert any("LLMClient" in c for c in chunks), f"expected LLMClient in chunks: {chunks}"
+    assert any("LLMClient" in c for c in chunks), (
+        f"expected LLMClient in chunks: {chunks}"
+    )
 
 
 # ── post() writes to shared ────────────────────────────────────────────────────
+
 
 def test_ragnode_post_writes_shared(knowledge_dir):
     node = RAGNode(sources=str(knowledge_dir))
@@ -89,7 +94,7 @@ def test_ragnode_custom_keys(tmp_path):
         chunks_key="raw",
     )
     shared = {"q": "Fenn"}
-    query  = node.prep(shared)
+    query = node.prep(shared)
     chunks = node.exec(query)
     node.post(shared, query, chunks)
 
@@ -99,17 +104,19 @@ def test_ragnode_custom_keys(tmp_path):
 
 # ── Flow integration ───────────────────────────────────────────────────────────
 
+
 def test_ragnode_in_flow(knowledge_dir):
     from fenn.agents import Node
 
     class _Answer(Node):
         def prep(self, shared):
             return shared.get("rag_context", "")
+
         def post(self, shared, prep_res, exec_res):
             shared["used_context"] = prep_res
             return "default"
 
-    rag    = RAGNode(sources=str(knowledge_dir), query_key="query")
+    rag = RAGNode(sources=str(knowledge_dir), query_key="query")
     answer = _Answer()
 
     flow = Flow(start=rag)

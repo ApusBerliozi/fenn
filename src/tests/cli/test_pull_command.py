@@ -89,8 +89,8 @@ class TestPullCommand:
 
         # Verify dir was created and file was extracted
         assert (tmp_path / "new_dir").exists()
-        assert (tmp_path / "new_dir" / "main.py").exists() 
-    
+        assert (tmp_path / "new_dir" / "main.py").exists()
+
     def test_pull_template_not_found(self, requests_mock, capsys, tmp_path):
         """Test pull with non-existent template."""
         args = Mock()

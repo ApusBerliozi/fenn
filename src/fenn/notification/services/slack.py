@@ -10,7 +10,7 @@ class Slack(Service):
         """Initialize Slack service."""
         super().__init__()
         self._slack_webhook_url = webhook_url
-        
+
     def send_notification(self, message: str) -> None:
         """Send notification to Slack channel.
 

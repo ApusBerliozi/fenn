@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class Service(ABC):
     """Abstract base class for notification services."""
 

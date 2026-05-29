@@ -1,5 +1,6 @@
 import re
 
+
 def chunk_text(text, mode="smart", size=500, overlap=50):
     """
     Split a document string into chunks for indexing.
@@ -97,6 +98,6 @@ def _chunk_fixed(text, size, overlap):
     chunks = []
     start = 0
     while start < len(text):
-        chunks.append(text[start:start + size])
+        chunks.append(text[start : start + size])
         start += size - overlap
     return chunks

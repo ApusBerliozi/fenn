@@ -1,10 +1,11 @@
 import warnings
-import pytest
-from fenn.agents import BaseNode, Node, Flow
+
+from fenn.agents import BaseNode, Flow, Node
 
 
 class _Counter(Node):
     """Node that increments shared['count'] and returns next_action."""
+
     def __init__(self, next_action="default"):
         super().__init__()
         self._next_action = next_action
@@ -18,6 +19,7 @@ class _Counter(Node):
 
 
 # ── Linear flow ────────────────────────────────────────────────────────────────
+
 
 def test_linear_flow_runs_all_nodes():
     a, b, c = _Counter(), _Counter(), _Counter()
@@ -37,6 +39,7 @@ def test_linear_flow_preserves_order():
             super().__init__()
             self.name = name
             self._nxt = nxt
+
         def post(self, shared, p, e):
             order.append(self.name)
             return self._nxt
@@ -50,22 +53,24 @@ def test_linear_flow_preserves_order():
 
 # ── Branching ──────────────────────────────────────────────────────────────────
 
+
 def test_branching_by_action():
     class _Branch(Node):
         def __init__(self, action):
             super().__init__()
             self._action = action
+
         def post(self, shared, p, e):
             return self._action
 
-    root    = _Branch("go_left")
-    left    = _Counter()
-    right   = _Counter()
+    root = _Branch("go_left")
+    left = _Counter()
+    right = _Counter()
 
     flow = Flow(start=root)
-    flow.connect(root, left,  "go_left")
+    flow.connect(root, left, "go_left")
     flow.connect(root, right, "go_right")
-    flow.connect(left,  None)
+    flow.connect(left, None)
     flow.connect(right, None)
 
     shared = {}
@@ -74,6 +79,7 @@ def test_branching_by_action():
 
 
 # ── Explicit terminal transitions ──────────────────────────────────────────────
+
 
 def test_explicit_terminal_no_warning():
     node = _Counter()
@@ -89,7 +95,8 @@ def test_explicit_terminal_no_warning():
 
 def test_missing_action_warns():
     class _WrongAction(Node):
-        def post(self, shared, p, e): return "nonexistent"
+        def post(self, shared, p, e):
+            return "nonexistent"
 
     node = _WrongAction()
     flow = Flow(start=node)
@@ -103,6 +110,7 @@ def test_missing_action_warns():
 
 # ── Duplicate connection warning ───────────────────────────────────────────────
 
+
 def test_duplicate_connect_warns():
     a, b, c = _Counter(), _Counter(), _Counter()
     flow = Flow(start=a)
@@ -114,6 +122,7 @@ def test_duplicate_connect_warns():
 
 
 # ── Old operator wiring is gone ────────────────────────────────────────────────
+
 
 def test_no_rshift_operator():
     assert not hasattr(BaseNode, "__rshift__"), "BaseNode.__rshift__ must be removed"
@@ -128,6 +137,7 @@ def test_no_next_method():
 
 
 # ── Flow.connect returns self ──────────────────────────────────────────────────
+
 
 def test_connect_returns_flow():
     a, b = _Counter(), _Counter()

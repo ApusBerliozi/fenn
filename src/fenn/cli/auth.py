@@ -6,6 +6,7 @@ import argparse
 import getpass
 import sys
 
+import requests
 from colorama import Fore, Style
 
 from fenn.remote.client import DEFAULT_REMOTE_HOST
@@ -16,8 +17,6 @@ from fenn.remote.credentials import (
     mask_key,
     write_credentials,
 )
-import requests
-
 from fenn.remote.exceptions import RemoteError
 
 
@@ -87,10 +86,7 @@ def _status(args: argparse.Namespace) -> None:
         )
         sys.exit(1)
 
-    print(
-        f"{Fore.CYAN}profile : "
-        f"{Fore.LIGHTYELLOW_EX}{creds.profile}{Style.RESET_ALL}"
-    )
+    print(f"{Fore.CYAN}profile : {Fore.LIGHTYELLOW_EX}{creds.profile}{Style.RESET_ALL}")
     print(
         f"{Fore.CYAN}api_key : "
         f"{Fore.LIGHTYELLOW_EX}{mask_key(creds.api_key)}{Style.RESET_ALL}"

@@ -1,4 +1,5 @@
 from fenn.agents import Node
+
 from .loader import load_documents
 from .retriever import Retriever
 
@@ -60,10 +61,10 @@ class RAGNode(Node):
         persist_path=None,
     ):
         super().__init__()
-        self._query_key   = query_key
+        self._query_key = query_key
         self._context_key = context_key
-        self._chunks_key  = chunks_key
-        self._top_k       = top_k
+        self._chunks_key = chunks_key
+        self._top_k = top_k
         self._next_action = next_action
 
         self._retriever = Retriever(
@@ -93,6 +94,6 @@ class RAGNode(Node):
         return self._retriever.query(query, top_k=self._top_k)
 
     def post(self, shared, query, chunks):
-        shared[self._chunks_key]  = chunks
+        shared[self._chunks_key] = chunks
         shared[self._context_key] = "\n\n".join(chunks)
         return self._next_action

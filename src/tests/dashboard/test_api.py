@@ -5,7 +5,6 @@ import pytest
 from fenn.dashboard.app import app
 from fenn.dashboard.scanner import FennScanner
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -33,12 +32,30 @@ def _write(path, content):
 def scanner_with_sessions(tmp_path):
     """Return a FennScanner loaded with a small set of known sessions."""
     sessions = [
-        dict(project="alpha", sid="a1", started="2026-05-21 07:00:00",
-             ended="2026-05-21 07:00:10", dur=10, status="completed"),
-        dict(project="alpha", sid="a2", started="2026-05-21 08:00:00",
-             ended="2026-05-21 08:00:05", dur=5, status="failed"),
-        dict(project="beta",  sid="b1", started="2026-05-21 06:00:00",
-             ended="2026-05-21 06:00:20", dur=20, status="completed"),
+        dict(
+            project="alpha",
+            sid="a1",
+            started="2026-05-21 07:00:00",
+            ended="2026-05-21 07:00:10",
+            dur=10,
+            status="completed",
+        ),
+        dict(
+            project="alpha",
+            sid="a2",
+            started="2026-05-21 08:00:00",
+            ended="2026-05-21 08:00:05",
+            dur=5,
+            status="failed",
+        ),
+        dict(
+            project="beta",
+            sid="b1",
+            started="2026-05-21 06:00:00",
+            ended="2026-05-21 06:00:20",
+            dur=20,
+            status="completed",
+        ),
     ]
     for s in sessions:
         _write(tmp_path / f"{s['sid']}.fn", _FN_TMPL.format(**s))
@@ -51,6 +68,7 @@ def scanner_with_sessions(tmp_path):
 def client(scanner_with_sessions):
     """Flask test client wired to a fresh scanner with known data."""
     import fenn.dashboard.app as app_module
+
     original = app_module.scanner
     app_module.scanner = scanner_with_sessions
     app.config["TESTING"] = True
@@ -153,7 +171,10 @@ class TestApiSessionsPagination:
         all_resp = client.get("/api/sessions").get_json()
         paged_resp = client.get("/api/sessions?offset=2").get_json()
         if all_resp["total"] >= 3:
-            assert paged_resp["items"][0]["session_id"] == all_resp["items"][2]["session_id"]
+            assert (
+                paged_resp["items"][0]["session_id"]
+                == all_resp["items"][2]["session_id"]
+            )
 
     def test_offset_beyond_total_returns_empty(self, client):
         """offset larger than total must return zero items."""
@@ -182,7 +203,9 @@ class TestApiSessionsSort:
         """?sort=duration_s should order shortest first."""
         resp = client.get("/api/sessions?sort=duration_s")
         data = resp.get_json()
-        durations = [s["duration_s"] for s in data["items"] if s["duration_s"] is not None]
+        durations = [
+            s["duration_s"] for s in data["items"] if s["duration_s"] is not None
+        ]
         assert durations == sorted(durations)
 
     def test_sort_by_started_ascending(self, client):

@@ -1,7 +1,20 @@
 from pathlib import Path
 
-
-SUPPORTED_EXTENSIONS = {".txt", ".md", ".pdf", ".json", ".py", ".js", ".ts", ".html", ".css", ".yaml", ".yml", ".toml", ".csv"}
+SUPPORTED_EXTENSIONS = {
+    ".txt",
+    ".md",
+    ".pdf",
+    ".json",
+    ".py",
+    ".js",
+    ".ts",
+    ".html",
+    ".css",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".csv",
+}
 
 
 def load_documents(source):
@@ -59,7 +72,9 @@ def load_documents(source):
             docs.append(doc)
     elif path.is_dir():
         found = list(path.rglob("*"))
-        supported = [f for f in found if f.is_file() and f.suffix in SUPPORTED_EXTENSIONS]
+        supported = [
+            f for f in found if f.is_file() and f.suffix in SUPPORTED_EXTENSIONS
+        ]
         if not supported:
             print(f"[cofone] warning: no supported files found in {path}")
             print(f"[cofone] supported extensions: {', '.join(SUPPORTED_EXTENSIONS)}")
@@ -89,16 +104,19 @@ def _read_pdf(path):
     """
     try:
         import pypdf
+
         reader = pypdf.PdfReader(str(path))
-        pages  = [p.extract_text() or "" for p in reader.pages]
-        text   = "\n".join(pages).strip()
+        pages = [p.extract_text() or "" for p in reader.pages]
+        text = "\n".join(pages).strip()
         if not text:
-            print(f"[cofone] warning: PDF '{path.name}' returned no text (may be scanned/image-based)")
+            print(
+                f"[cofone] warning: PDF '{path.name}' returned no text (may be scanned/image-based)"
+            )
         return text or None
     except ImportError:
         raise ImportError(
             "[cofone] pypdf not installed.\n"
-            "Run: pip install \"cofone[pdf]\"  or  pip install pypdf"
+            'Run: pip install "cofone[pdf]"  or  pip install pypdf'
         )
 
 
@@ -152,8 +170,9 @@ def _load_wikipedia(url):
     Requires: pip install "cofone[web]"  or  pip install wikipedia
     """
     try:
-        import wikipedia
         import re
+
+        import wikipedia
 
         # Detect language from subdomain (it.wikipedia, fr.wikipedia, etc.)
         lang_match = re.search(r"https?://([a-z]+)\.wikipedia", url)
@@ -163,7 +182,11 @@ def _load_wikipedia(url):
         # Extract article title from URL slug
         slug = url.rstrip("/").split("/wiki/")[-1]
         slug = slug.replace("_", " ")
-        slug = re.sub(r"%[0-9A-Fa-f]{2}", lambda m: bytes.fromhex(m.group()[1:]).decode("utf-8", errors="replace"), slug)
+        slug = re.sub(
+            r"%[0-9A-Fa-f]{2}",
+            lambda m: bytes.fromhex(m.group()[1:]).decode("utf-8", errors="replace"),
+            slug,
+        )
 
         page = wikipedia.page(slug, auto_suggest=False)
         return page.content
@@ -171,7 +194,7 @@ def _load_wikipedia(url):
     except ImportError:
         raise ImportError(
             "[cofone] wikipedia package not installed.\n"
-            "Run: pip install \"cofone[web]\"  or  pip install wikipedia"
+            'Run: pip install "cofone[web]"  or  pip install wikipedia'
         )
     except Exception as e:
         raise ValueError(f"[cofone] Wikipedia error for '{url}': {e}")
@@ -187,6 +210,7 @@ def _load_youtube(url):
     """
     try:
         import re
+
         from youtube_transcript_api import YouTubeTranscriptApi
 
         video_id = re.search(r"(?:v=|youtu\.be/)([^&\n?#]+)", url)
@@ -210,8 +234,7 @@ def _load_youtube(url):
         except Exception:
             # Fallback: API < 0.7.0
             transcript = (
-                YouTubeTranscriptApi
-                .list_transcripts(vid)
+                YouTubeTranscriptApi.list_transcripts(vid)
                 .find_transcript(["en", "it"])
                 .fetch()
             )
@@ -220,5 +243,5 @@ def _load_youtube(url):
     except ImportError:
         raise ImportError(
             "[cofone] youtube-transcript-api not installed.\n"
-            "Run: pip install \"cofone[web]\"  or  pip install youtube-transcript-api"
+            'Run: pip install "cofone[web]"  or  pip install youtube-transcript-api'
         )

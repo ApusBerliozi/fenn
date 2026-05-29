@@ -77,9 +77,7 @@ def test_script_outside_root_rejected(project, tmp_path):
 
 
 def test_extra_excludes(project):
-    pack = pack_workspace(
-        project, project / "main.py", extra_excludes=["*.csv"]
-    )
+    pack = pack_workspace(project, project / "main.py", extra_excludes=["*.csv"])
     try:
         names = _members(pack.path)
         assert "main.py" in names

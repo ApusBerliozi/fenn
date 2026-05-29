@@ -1,6 +1,7 @@
+from fenn.agents.llm import LLMClient
+
 from .loader import load_documents
 from .retriever import Retriever
-from fenn.agents.llm import LLMClient, _detect_provider, DEFAULT_MODELS
 
 
 class RAG:
@@ -116,9 +117,9 @@ class RAG:
             base_url=base_url,
         )
         self.model_provider = self._llm.provider
-        self.model          = self._llm.model
-        self.model_api_key  = self._llm.api_key
-        self.base_url       = self._llm.base_url
+        self.model = self._llm.model
+        self.model_api_key = self._llm.api_key
+        self.base_url = self._llm.base_url
 
         self._retriever = Retriever(
             use_faiss=faiss,
@@ -128,10 +129,10 @@ class RAG:
             chunk_mode=chunk_mode,
             persist_path=persist_path,
         )
-        self._tools       = []
-        self._debug       = False
-        self._memory      = memory
-        self._history     = []   # list of (query, answer) tuples
+        self._tools = []
+        self._debug = False
+        self._memory = memory
+        self._history = []  # list of (query, answer) tuples
         self._max_history = max_history
         self._system_prompt = system_prompt or (
             "You are a helpful assistant. "
@@ -203,16 +204,17 @@ class RAG:
         tool_ctx = ""
         if self._tools:
             tool_descriptions = "\n".join(
-                f"- {fn.__name__}: {(fn.__doc__ or '').strip()}"
-                for fn in self._tools
+                f"- {fn.__name__}: {(fn.__doc__ or '').strip()}" for fn in self._tools
             )
             tool_ctx = f"\n\nAvailable tools:\n{tool_descriptions}"
 
         if self._memory and self._history:
-            history = self._history[-self._max_history:] if self._max_history else self._history
-            history_str = "\n".join(
-                f"User: {q}\nAssistant: {a}" for q, a in history
+            history = (
+                self._history[-self._max_history :]
+                if self._max_history
+                else self._history
             )
+            history_str = "\n".join(f"User: {q}\nAssistant: {a}" for q, a in history)
             return (
                 f"{self._system_prompt}\n\n"
                 f"Conversation so far:\n{history_str}\n\n"
@@ -250,18 +252,22 @@ class RAG:
         chunks = self._retriever.query(query)
 
         if self._debug:
-            print(f"\n[cofone] model_provider: {self.model_provider} | model: {self.model}")
+            print(
+                f"\n[cofone] model_provider: {self.model_provider} | model: {self.model}"
+            )
             print(f"[cofone] query: {query}")
             print(f"[cofone] chunks found: {len(chunks)}")
             for i, c in enumerate(chunks):
                 print(f"  [{i}] {c[:80]}...")
 
         context = "\n\n".join(chunks)
-        prompt  = self._build_prompt(query, context)
-        answer  = self._llm.ask(prompt, schema=schema)
+        prompt = self._build_prompt(query, context)
+        answer = self._llm.ask(prompt, schema=schema)
 
         if self._memory:
-            self._history.append((query, answer if isinstance(answer, str) else str(answer)))
+            self._history.append(
+                (query, answer if isinstance(answer, str) else str(answer))
+            )
 
         return answer
 
@@ -308,16 +314,18 @@ class RAG:
                 print(token, end="", flush=True)
             print()
         """
-        chunks  = self._retriever.query(query)
+        chunks = self._retriever.query(query)
         context = "\n\n".join(chunks)
-        prompt  = self._build_prompt(query, context)
+        prompt = self._build_prompt(query, context)
 
         if self._debug:
-            print(f"\n[cofone] model_provider: {self.model_provider} | model: {self.model}")
+            print(
+                f"\n[cofone] model_provider: {self.model_provider} | model: {self.model}"
+            )
             print(f"[cofone] query: {query}")
             print(f"[cofone] chunks found: {len(chunks)}")
             for i, c in enumerate(chunks):
-                print(f"  [{i+1}] {c[:80]}...")
+                print(f"  [{i + 1}] {c[:80]}...")
 
         yield from self._llm.stream(prompt)
 

@@ -1,13 +1,9 @@
 """Unit tests for FennScanner caching (Pick 2) and running-session detection."""
 
-import time
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
 from fenn.dashboard.scanner import FennScanner
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -62,7 +58,9 @@ class TestParseCache:
         # Overwrite with different content but keep mtime by faking it
         orig_mtime = fn.stat().st_mtime
 
-        with patch.object(Path, "read_text", side_effect=AssertionError("should not read")):
+        with patch.object(
+            Path, "read_text", side_effect=AssertionError("should not read")
+        ):
             # Inject a matching mtime so the cache is considered valid
             scanner._parse_cache[str(fn)] = (orig_mtime, first)
             second = scanner.parse_fn_file(fn)

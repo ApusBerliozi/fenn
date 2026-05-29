@@ -1,7 +1,9 @@
-from fenn.agents import Flow
-from fenn.agents.node import ThinkNode, ActNode, ObserveNode
-from fenn.agents.tools import get_tool_schema
 import yaml
+
+from fenn.agents import Flow
+from fenn.agents.node import ActNode, ObserveNode, ThinkNode
+from fenn.agents.tools import get_tool_schema
+
 
 class Agent:
     def __init__(self, config, llm):
@@ -13,11 +15,11 @@ class Agent:
         act = ActNode()
         observe = ObserveNode()
 
-        think - "act"     >> act
-        think - "done"    >> None
-        act   - "observe" >> observe
+        think - "act" >> act
+        think - "done" >> None
+        act - "observe" >> observe
         observe - "think" >> think
-        observe - "done"  >> None
+        observe - "done" >> None
 
         self.flow = Flow(start=think)
 
@@ -26,13 +28,13 @@ class Agent:
             "llm": self.llm,
             "messages": [
                 {"role": "system", "content": self.config["agent"]["system_prompt"]},
-                {"role": "user",   "content": user_input}
+                {"role": "user", "content": user_input},
             ],
             "tools": get_tool_schema(),
             "iterations": 0,
             "max_iterations": self.config["agent"]["max_iterations"],
             "last_thought": None,
-            "last_observation": None
+            "last_observation": None,
         }
 
         self.flow.run(shared)

@@ -104,9 +104,7 @@ def _parse_int_arg(
     except ValueError:
         raise _ApiBadRequest(f"{name} must be an integer", name)
     if v < min_v or v > max_v:
-        raise _ApiBadRequest(
-            f"{name} must be between {min_v} and {max_v}", name
-        )
+        raise _ApiBadRequest(f"{name} must be between {min_v} and {max_v}", name)
     return v
 
 
@@ -130,9 +128,7 @@ def api_sessions():
         limit = _parse_int_arg(
             "limit", request.args.get("limit"), _DEFAULT_LIMIT, 1, _MAX_LIMIT
         )
-        offset = _parse_int_arg(
-            "offset", request.args.get("offset"), 0, 0, 1_000_000
-        )
+        offset = _parse_int_arg("offset", request.args.get("offset"), 0, 0, 1_000_000)
 
         try:
             result = scanner.list_sessions(
