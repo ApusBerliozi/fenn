@@ -118,3 +118,12 @@ exclude = ["src/fenn/experimental/*"]
 
 [tool.ruff]
 include = ["pyproject.toml", "src/**/*.py"]
+
+[tool.typos.files]
+extend-exclude = [
+  "uv.lock",
+  "experimental/"
+]
+
+[tool.typos.default.extend-words]
+certifi = "certifi"

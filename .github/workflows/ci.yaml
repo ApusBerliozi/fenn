@@ -1,4 +1,4 @@
-name: Run unit tests with Pytest, Format + Lint checking with Ruff
+name: Tests and Pre-Commit Checks
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  ruff:
+  pre-commit:
     runs-on: ubuntu-latest
 
     steps:
