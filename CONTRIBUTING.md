@@ -56,6 +56,7 @@ This only needs to be done once after cloning your fork.
 This makes pre-commit run the configured hooks on every `git commit`. Your commit may be blocked if a hook reports a failure or modifies a file. `ruff format` may reformat your code automatically, so you'll need to review the modifications and stage them again before committing. Without this step your commits may fail CI.
 
 For more information on `ruff` and `typos` see the docs:
+
 - [`ruff` documentation](https://docs.astral.sh/ruff/)
 - [`typos` documentation](https://github.com/crate-ci/typos)
 
@@ -82,3 +83,30 @@ If you find a bug or have a feature request but do not plan to implement it your
 
 If you need guidance at any point, use the Discord server or the GitHub discussion thread to ask questions and coordinate with maintainers and other contributors.
 
+## Building the Documentation
+
+The fenn documentation is built using [Sphinx](https://www.sphinx-doc.org/) and lives in the [pyfenn/docs](https://github.com/pyfenn/docs) repository.
+
+### Setup
+
+Install the required dependencies:
+
+```bash
+pip install sphinx furo sphinx-copybutton sphinx-design
+```
+
+### Build
+
+Clone the docs repository and build locally:
+
+```bash
+git clone https://github.com/pyfenn/docs.git
+cd docs
+make html
+```
+
+The generated documentation will be in `_build/html/index.html`. Open it in your browser to preview.
+
+### Contributing to the Docs
+
+If your change affects public APIs or adds new features, please update the relevant `.rst` files in the docs repository and open a separate PR there.
