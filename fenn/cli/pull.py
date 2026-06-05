@@ -1,5 +1,6 @@
 import argparse
 import os
+import subprocess
 import sys
 import tempfile
 import zipfile
@@ -76,6 +77,37 @@ def execute(args: argparse.Namespace) -> None:
             f"{Fore.LIGHTYELLOW_EX}{template_name}{Fore.GREEN} into "
             f"{Fore.LIGHTYELLOW_EX}{target_dir}{Fore.GREEN}.{Style.RESET_ALL}"
         )
+
+        # AUTO-INSTALL REQUIREMENTS 
+        requirements_file = target_dir / "requirements.txt"
+        
+        if requirements_file.exists():
+            if HAS_RICH:
+                Console().print("\n[bold green]📦 Found template dependencies at requirements.txt[/bold green]")
+                Console().print("[cyan]Installing requirements automatically... (this may take a moment)[/cyan]\n")
+            else:
+                print(f"\n{Fore.GREEN}📦 Found template dependencies at requirements.txt{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}Installing requirements automatically... (this may take a moment){Style.RESET_ALL}\n")
+            
+            try:
+                # sys.executable ensures the template's packages land right in the active venv
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "install", "-r", str(requirements_file)],
+                    check=True,
+                    capture_output=False,  # Allows the user to track pip's stream progress bar live
+                )
+                if HAS_RICH:
+                    Console().print("\n[bold green]✅ All dependencies installed successfully![/bold green]")
+                else:
+                    print(f"\n{Fore.GREEN}✅ All dependencies installed successfully!{Style.RESET_ALL}")
+            except subprocess.CalledProcessError as e:
+                if HAS_RICH:
+                    Console().print(f"\n[bold red]⚠️ Automatic installation failed with exit code {e.returncode}.[/bold red]")
+                    Console().print("[yellow]Please run 'pip install -r requirements.txt' manually.[/yellow]")
+                else:
+                    print(f"\n{Fore.RED}⚠️ Automatic installation failed with exit code {e.returncode}.{Style.RESET_ALL}")
+                    print(f"{Fore.YELLOW}Please run 'pip install -r requirements.txt' manually.{Style.RESET_ALL}")
+
     except TemplateNotFoundError as e:
         print(f"{Fore.RED}{e}{Style.RESET_ALL}")
         sys.exit(1)
