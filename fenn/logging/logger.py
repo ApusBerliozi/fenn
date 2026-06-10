@@ -6,8 +6,6 @@ from colorama import Fore, Style
 from fenn.args import Parser
 from fenn.logging.backends.fnxml import FnXmlBackend
 from fenn.logging.backends.logging import LoggingBackend
-from fenn.logging.backends.tensorboard import TensorboardBackend
-from fenn.logging.backends.wandb import WandbBackend
 from fenn.secrets.keystore import KeyStore
 
 
@@ -34,31 +32,6 @@ class Logger:
 
         self._logging_backend = LoggingBackend()
         self._fnxml_backend = FnXmlBackend()
-
-        self._wandb_backend = WandbBackend(
-            keystore=self._keystore,
-            system_info=lambda msg: self._logging_backend.info(
-                msg, display=True, to_file=False
-            ),
-            system_warning=lambda msg: self._logging_backend.warning(
-                msg, display=True, to_file=False
-            ),
-            system_exception=lambda msg: self._logging_backend.exception(
-                msg, display=True, to_file=False
-            ),
-        )
-        self._tensorboard_backend = TensorboardBackend(
-            system_info=lambda msg: self._logging_backend.info(
-                msg, display=True, to_file=False
-            ),
-            system_warning=lambda msg: self._logging_backend.warning(
-                msg, display=True, to_file=False
-            ),
-            system_exception=lambda msg: self._logging_backend.exception(
-                msg, display=True, to_file=False
-            ),
-        )
-
         self._args: Optional[Dict[str, Any]] = None
         self._initialized = True
 
@@ -123,20 +96,9 @@ class Logger:
         self._logging_backend.start(self._args)
         self._fnxml_backend.start(self._args)
 
-        if self._args.get("wandb"):
-            self._wandb_backend.start(self._args)
-
-        if self._args.get("tensorboard"):
-            self._tensorboard_backend.start(self._args)
-
     def stop(self) -> None:
         # stop external backends first, then restore print
         self._logging_backend.stop()
-
-        if self._args.get("wandb"):
-            self._wandb_backend.stop()
-        if self._args.get("tensorboard"):
-            self._tensorboard_backend.stop()
         self._fnxml_backend.stop()
 
     @staticmethod
@@ -156,13 +118,6 @@ class Logger:
     # --------------------------
     # accessors (optional)
     # --------------------------
-    @property
-    def wandb_run(self) -> Optional[Any]:
-        return self._wandb_backend.run
-
-    @property
-    def tensorboard(self) -> Optional[Any]:
-        return self._tensorboard_backend.writer
 
     @property
     def log_file(self) -> Optional[Path]:
