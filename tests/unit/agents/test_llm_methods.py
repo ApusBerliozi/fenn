@@ -32,6 +32,16 @@ def _make_completion(content="Hello!"):
     return SimpleNamespace(choices=[choice])
 
 
+def _patched_openai_module():
+    """
+    Build a fake 'openai' module so `from openai import RateLimitError`
+    inside chat_complete() succeeds without the real package installed.
+    """
+    fake_module = MagicMock()
+    fake_module.RateLimitError = type("RateLimitError", (Exception,), {})
+    return fake_module
+
+
 # ── _openai_client ─────────────────────────────────────────────────────────────
 
 
@@ -60,41 +70,6 @@ def test_openai_client_raises_on_missing_package():
 # ── chat_complete ──────────────────────────────────────────────────────────────
 
 
-def test_chat_complete_returns_text():
-    client = _make_client()
-    fake_response = _make_completion("Hi there")
-
-    mock_openai = MagicMock()
-    mock_openai.chat.completions.create.return_value = fake_response
-
-    with patch.object(client, "_openai_client", return_value=mock_openai):
-        with patch("fenn.agents.llm.RateLimitError", create=True, new=Exception):
-            # patch the import inside chat_complete
-            with patch("fenn.agents.llm.__builtins__", {}):
-                pass  # just ensure no side-effects
-
-        # Simpler: patch at the openai module level
-        import fenn.agents.llm as llm_module
-
-        fake_rle = type("RateLimitError", (Exception,), {})
-        with patch.object(llm_module, "time"):
-            with patch(
-                "builtins.__import__",
-                side_effect=lambda name, *a, **kw: (
-                    SimpleNamespace(RateLimitError=fake_rle)
-                    if name == "openai"
-                    else __import__(name, *a, **kw)
-                ),
-            ):
-                pass
-
-        # Cleanest approach: mock the whole call chain
-        result = client.chat_complete([{"role": "user", "content": "Hello"}])
-
-    assert result == "Hi there"
-    mock_openai.chat.completions.create.assert_called_once()
-
-
 def test_chat_complete_plain_text(monkeypatch):
     """chat_complete without schema returns a string."""
     client = _make_client()
@@ -102,8 +77,9 @@ def test_chat_complete_plain_text(monkeypatch):
     mock_oa = MagicMock()
     mock_oa.chat.completions.create.return_value = fake_response
 
-    with patch.object(client, "_openai_client", return_value=mock_oa):
-        result = client.chat_complete([{"role": "user", "content": "hi"}])
+    with patch.dict("sys.modules", {"openai": _patched_openai_module()}):
+        with patch.object(client, "_openai_client", return_value=mock_oa):
+            result = client.chat_complete([{"role": "user", "content": "hi"}])
 
     assert result == "plain response"
 
@@ -120,11 +96,12 @@ def test_chat_complete_with_schema(monkeypatch):
     mock_oa.chat.completions.create.return_value = fake_response
 
     client = _make_client()
-    with patch.object(client, "_openai_client", return_value=mock_oa):
-        result = client.chat_complete(
-            [{"role": "user", "content": "What is the answer?"}],
-            schema=Reply,
-        )
+    with patch.dict("sys.modules", {"openai": _patched_openai_module()}):
+        with patch.object(client, "_openai_client", return_value=mock_oa):
+            result = client.chat_complete(
+                [{"role": "user", "content": "What is the answer?"}],
+                schema=Reply,
+            )
 
     assert isinstance(result, Reply)
     assert result.answer == "42"
@@ -145,11 +122,12 @@ def test_chat_complete_with_schema_simple():
     mock_oa = MagicMock()
     mock_oa.chat.completions.create.return_value = fake_response
 
-    with patch.object(client, "_openai_client", return_value=mock_oa):
-        result = client.chat_complete(
-            [{"role": "user", "content": "give me a point"}],
-            schema=Point,
-        )
+    with patch.dict("sys.modules", {"openai": _patched_openai_module()}):
+        with patch.object(client, "_openai_client", return_value=mock_oa):
+            result = client.chat_complete(
+                [{"role": "user", "content": "give me a point"}],
+                schema=Point,
+            )
 
     assert result == Point(x=1, y=2)
 
@@ -164,8 +142,9 @@ def test_chat_complete_does_not_mutate_caller_messages():
     mock_oa = MagicMock()
     mock_oa.chat.completions.create.return_value = fake_response
 
-    with patch.object(client, "_openai_client", return_value=mock_oa):
-        client.chat_complete(msgs)
+    with patch.dict("sys.modules", {"openai": _patched_openai_module()}):
+        with patch.object(client, "_openai_client", return_value=mock_oa):
+            client.chat_complete(msgs)
 
     assert msgs[0]["content"] == original_content
 
