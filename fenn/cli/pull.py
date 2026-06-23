@@ -9,7 +9,7 @@ from pathlib import Path
 import requests
 from colorama import Fore, Style
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 try:
     from rich.console import Console

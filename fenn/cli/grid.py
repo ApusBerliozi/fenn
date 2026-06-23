@@ -9,8 +9,8 @@ from pathlib import Path
 import yaml
 from colorama import Fore, Style
 
-from fenn.args.parser import Parser
-from fenn.utils.logging import logger
+from fenn.logging import logger
+from fenn.parser import Parser
 
 
 def execute(args: argparse.Namespace) -> None:

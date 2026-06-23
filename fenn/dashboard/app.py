@@ -19,7 +19,7 @@ from flask import (
 )
 from flask_wtf.csrf import CSRFError, CSRFProtect
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 try:
     from fenn.dashboard import auth as dashboard_auth

@@ -6,7 +6,7 @@ from colorama import Fore, Style
 from rich.console import Console
 from rich.table import Table
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 TEMPLATES_REPO = "pyfenn/templates"
 REPO_NAME = "templates"

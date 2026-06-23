@@ -17,7 +17,7 @@ from typing import Optional
 import requests
 from flask import g, redirect, session, url_for
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 AUTH_URL = "https://pyfenn.com"
 ME_PATH = "/api/dashboard/me"

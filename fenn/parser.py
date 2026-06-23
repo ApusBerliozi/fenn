@@ -4,8 +4,8 @@ from typing import Any, Dict
 import yaml
 from colorama import init
 
-from fenn.secrets.keystore import KeyStore
-from fenn.utils.logging import logger
+from fenn.keystore import KeyStore
+from fenn.logging import logger
 
 
 class Parser:

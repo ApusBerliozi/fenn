@@ -178,7 +178,7 @@ def resolve_api_key(
         return creds
 
     try:
-        from fenn.secrets.keystore import KeyStore
+        from fenn.keystore import KeyStore
 
         dotenv_value = KeyStore().get_key(ENV_API_KEY)
     except KeyError:

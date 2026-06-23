@@ -13,9 +13,9 @@ from sklearn.metrics import (  # noqa: F401
 )
 from torch.utils.data import DataLoader
 
-from fenn.export import Exporter
+from fenn.exporter import Exporter
+from fenn.logging import logger
 from fenn.nn.utils import Checkpoint, ModelPrettyPrinter, TrainingState
-from fenn.utils.logging import logger
 
 
 class Trainer(ABC):

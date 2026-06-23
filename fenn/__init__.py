@@ -1,3 +1,3 @@
-from fenn.core import Fenn
+from fenn.app import Fenn
 
 __all__ = ["Fenn"]

@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 
 def summary(df: pd.DataFrame) -> pd.DataFrame:

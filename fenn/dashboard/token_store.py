@@ -19,7 +19,7 @@ import stat
 from pathlib import Path
 from typing import Optional, TypedDict
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 _PATH = Path.home() / ".fenn" / "dashboard_session.json"
 

@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 from .chunker import chunk_text
 

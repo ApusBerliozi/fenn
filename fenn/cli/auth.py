@@ -9,6 +9,7 @@ import sys
 import requests
 from colorama import Fore, Style
 
+from fenn.logging import logger
 from fenn.remote.client import DEFAULT_REMOTE_HOST
 from fenn.remote.credentials import (
     DEFAULT_PROFILE,
@@ -18,7 +19,6 @@ from fenn.remote.credentials import (
     write_credentials,
 )
 from fenn.remote.exceptions import RemoteError
-from fenn.utils.logging import logger
 
 
 def execute(args: argparse.Namespace) -> None:

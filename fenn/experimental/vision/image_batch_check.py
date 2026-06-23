@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Literal, TypedDict
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 import numpy as np
 

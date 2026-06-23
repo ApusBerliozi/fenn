@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fenn.utils.logging import logger
+from fenn.logging import logger
 
 SUPPORTED_EXTENSIONS = {
     ".txt",
