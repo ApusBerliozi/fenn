@@ -1,13 +1,17 @@
 """Fenn Dashboard — Flask application for browsing fnxml log files."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import secrets
 from datetime import timedelta
 from pathlib import Path
+from typing import Any
 
 from flask import (
     Flask,
+    Response,
     abort,
     g,
     jsonify,
@@ -18,6 +22,7 @@ from flask import (
     url_for,
 )
 from flask_wtf.csrf import CSRFError, CSRFProtect
+from werkzeug.exceptions import HTTPException
 
 from fenn.logging import logger
 
@@ -32,7 +37,7 @@ except ImportError:  # standalone: python app.py
 
 _HERE = Path(__file__).parent
 
-app = Flask(
+app: Flask = Flask(
     __name__,
     template_folder=str(_HERE / "templates"),
     static_folder=str(_HERE / "static"),
@@ -52,41 +57,41 @@ app.config.update(
 
 # CSRF on /connect and /logout. Even though we listen on 127.0.0.1, any tab in
 # the user's browser could POST cross-origin without it.
-csrf = CSRFProtect(app)
+csrf: CSRFProtect = CSRFProtect(app)
 
-scanner = FennScanner()
+scanner: FennScanner = FennScanner()
 
 
 @app.context_processor
-def _inject_current_user():
+def _inject_current_user() -> dict[str, Any]:
     return {"current_user": dashboard_auth.current_user()}
 
 
 # Endpoints that must remain reachable without a session.
-_PUBLIC_ENDPOINTS = frozenset({"connect", "logout", "static"})
+_PUBLIC_ENDPOINTS: frozenset[str] = frozenset({"connect", "logout", "static"})
 
-_STORED_TOKEN_EXPIRED_MESSAGE = (
+_STORED_TOKEN_EXPIRED_MESSAGE: str = (
     "Your saved dashboard token expired or was revoked. Paste a fresh one to continue."
 )
-_STORED_TOKEN_OFFLINE_MESSAGE = (
+_STORED_TOKEN_OFFLINE_MESSAGE: str = (
     "Could not reach https://pyfenn.com to verify your saved token. "
     "Using cached identity — the dashboard will revalidate next launch."
 )
 
 
-def _try_stored_session():
+def _try_stored_session() -> Response | None:
     """Re-establish a Flask session from ``~/.fenn/dashboard_session.json``.
 
     Returns ``None`` if the caller should proceed normally, or a Flask
     response if the caller should short-circuit (e.g. redirect to connect
     when the saved token has been revoked server-side).
     """
-    stored = token_store.load()
+    stored: dict[str, Any] | None = token_store.load()
     if stored is None:
         return None
 
     try:
-        user = dashboard_auth.validate_token(stored["token"])
+        user: dict[str, Any] = dashboard_auth.validate_token(stored["token"])
     except dashboard_auth.InvalidTokenError:
         # Server explicitly rejected the saved token — drop it and force a
         # fresh paste. Flash a message so the user understands why.
@@ -112,13 +117,13 @@ def _try_stored_session():
 
 
 @app.before_request
-def _require_login():
-    endpoint = request.endpoint
+def _require_login() -> Response | None:
+    endpoint: str | None = request.endpoint
     if endpoint in _PUBLIC_ENDPOINTS:
         return None
     if dashboard_auth.current_user() is not None:
         return None
-    response = _try_stored_session()
+    response: Response | None = _try_stored_session()
     if response is not None:
         return response
     if dashboard_auth.current_user() is not None:
@@ -127,12 +132,15 @@ def _require_login():
 
 
 @app.errorhandler(CSRFError)
-def _csrf_failed(_e):
-    return render_template(
-        "connect.html",
-        error_message="Form expired. Please try again.",
-        info_message=None,
-    ), 400
+def _csrf_failed(_e: CSRFError) -> tuple[str, int]:
+    return (
+        render_template(
+            "connect.html",
+            error_message="Form expired. Please try again.",
+            info_message=None,
+        ),
+        400,
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -141,12 +149,12 @@ def _csrf_failed(_e):
 
 
 @app.template_filter("duration")
-def duration_filter(seconds):
+def duration_filter(seconds: float) -> str:
     return scanner.format_duration(seconds)
 
 
 @app.template_filter("filesize")
-def filesize_filter(size):
+def filesize_filter(size: int) -> str:
     return scanner.format_size(size)
 
 
@@ -161,31 +169,31 @@ def short_id_filter(session_id: str) -> str:
 
 
 @app.route("/")
-def index():
+def index() -> str:
     return render_template("index.html", **scanner.get_overview())
 
 
 @app.route("/project/<project_name>")
-def project(project_name: str):
+def project(project_name: str) -> str:
     return render_template("project.html", **scanner.get_project(project_name))
 
 
 @app.route("/session/<project_name>/<session_id>", endpoint="session")
-def session_view(project_name: str, session_id: str):
-    data = scanner.get_session(project_name, session_id)
+def session_view(project_name: str, session_id: str) -> str:
+    data: dict[str, Any] | None = scanner.get_session(project_name, session_id)
     if data is None:
         abort(404)
     return render_template("session.html", **data)
 
 
 @app.route("/api/overview")
-def api_overview():
+def api_overview() -> Response:
     return jsonify(scanner.get_overview())
 
 
 @app.route("/api/session/<project_name>/<session_id>")
-def api_session(project_name: str, session_id: str):
-    data = scanner.get_session(project_name, session_id)
+def api_session(project_name: str, session_id: str) -> Response:
+    data: dict[str, Any] | None = scanner.get_session(project_name, session_id)
     if data is None:
         abort(404)
     data.pop("projects", None)
@@ -194,16 +202,24 @@ def api_session(project_name: str, session_id: str):
 
 # Pagination / filtering limits. 200 is large enough for any plausible UI
 # without letting a client ask for "everything" by accident.
-_MAX_LIMIT = 200
-_DEFAULT_LIMIT = 20
+_MAX_LIMIT: int = 200
+_DEFAULT_LIMIT: int = 20
 
 
-def _api_error(code: str, message: str, param: str | None = None):
+def _api_error(
+    code: str, message: str, param: str | None = None
+) -> tuple[Response, int]:
     """Standard 400 envelope so clients can branch on `error.code`."""
-    body = {"error": {"code": code, "message": message}}
+    body: dict[str, Any] = {"error": {"code": code, "message": message}}
     if param is not None:
         body["error"]["param"] = param
     return jsonify(body), 400
+
+
+class _ApiBadRequest(Exception):
+    def __init__(self, message: str, param: str | None = None) -> None:
+        self.message: str = message
+        self.param: str | None = param
 
 
 def _parse_int_arg(
@@ -212,7 +228,7 @@ def _parse_int_arg(
     if raw is None or raw == "":
         return default
     try:
-        v = int(raw)
+        v: int = int(raw)
     except ValueError:
         raise _ApiBadRequest(f"{name} must be an integer", name)
     if v < min_v or v > max_v:
@@ -220,30 +236,26 @@ def _parse_int_arg(
     return v
 
 
-class _ApiBadRequest(Exception):
-    def __init__(self, message: str, param: str | None = None):
-        self.message = message
-        self.param = param
-
-
 @app.route("/api/sessions")
-def api_sessions():
+def api_sessions() -> Response:
     """Filtered, sorted, paginated session listing.
 
     Query params: project, status, limit (1..200, default 20), offset (>=0,
     default 0), sort (field, optionally ``-`` prefixed for descending).
     """
     try:
-        project_name = request.args.get("project") or None
-        status = request.args.get("status") or None
-        sort = request.args.get("sort") or "-started"
-        limit = _parse_int_arg(
+        project_name: str | None = request.args.get("project") or None
+        status: str | None = request.args.get("status") or None
+        sort: str = request.args.get("sort") or "-started"
+        limit: int = _parse_int_arg(
             "limit", request.args.get("limit"), _DEFAULT_LIMIT, 1, _MAX_LIMIT
         )
-        offset = _parse_int_arg("offset", request.args.get("offset"), 0, 0, 1_000_000)
+        offset: int = _parse_int_arg(
+            "offset", request.args.get("offset"), 0, 0, 1_000_000
+        )
 
         try:
-            result = scanner.list_sessions(
+            result: dict[str, Any] = scanner.list_sessions(
                 project=project_name,
                 status=status,
                 limit=limit,
@@ -253,8 +265,8 @@ def api_sessions():
         except ValueError as e:
             # Pick the parameter name from the message so the envelope is
             # consistent with the int-parsing errors above.
-            msg = str(e)
-            param = "status" if msg.startswith("status") else "sort"
+            msg: str = str(e)
+            param: str = "status" if msg.startswith("status") else "sort"
             return _api_error("invalid_param", msg, param)
 
         return jsonify(result)
@@ -263,7 +275,7 @@ def api_sessions():
 
 
 @app.errorhandler(404)
-def not_found(_e):
+def not_found(_e: HTTPException) -> tuple[str, int]:
     return render_template("404.html", **scanner.get_overview()), 404
 
 
@@ -271,39 +283,39 @@ def not_found(_e):
 # Auth routes
 # --------------------------------------------------------------------------- #
 
-_NETWORK_ERROR_MESSAGE = (
+_NETWORK_ERROR_MESSAGE: str = (
     "Could not reach https://pyfenn.com. Verify your internet connection "
     "or open an issue at https://github.com/pyfenn/fenn/issues."
 )
-_INVALID_TOKEN_MESSAGE = "Invalid or expired token."
+_INVALID_TOKEN_MESSAGE: str = "Invalid or expired token."
 
 
 @app.route("/connect", methods=["GET", "POST"])
-def connect():
+def connect() -> Response:
     # Already signed in → bounce to home.
     if dashboard_auth.current_user() is not None:
         return redirect(url_for("index"))
 
     # One-shot info message set by the auth gate (e.g. "your saved token
     # expired"). Pop so it doesn't persist past this render.
-    info_message = session.pop("pending_info", None)
+    info_message: str | None = session.pop("pending_info", None)
 
     if request.method == "GET":
-        return render_template(
+        return render_template(  # type: ignore[return-value]
             "connect.html", error_message=None, info_message=info_message
         )
 
-    token = request.form.get("token", "")
+    token: str = request.form.get("token", "")
     try:
-        user = dashboard_auth.validate_token(token)
+        user: dict[str, Any] = dashboard_auth.validate_token(token)
     except dashboard_auth.InvalidTokenError:
-        return render_template(
+        return render_template(  # type: ignore[return-value]
             "connect.html",
             error_message=_INVALID_TOKEN_MESSAGE,
             info_message=None,
         ), 401
     except dashboard_auth.AuthUnreachableError:
-        return render_template(
+        return render_template(  # type: ignore[return-value]
             "connect.html",
             error_message=_NETWORK_ERROR_MESSAGE,
             info_message=None,
@@ -320,7 +332,7 @@ def connect():
 
 
 @app.route("/logout", methods=["POST"])
-def logout():
+def logout() -> Response:
     session.clear()
     # Also drop the disk cache — otherwise the next request would
     # silently re-establish the same session via _try_stored_session().
@@ -334,12 +346,15 @@ def logout():
 
 
 def run(
-    host: str = "127.0.0.1", port: int = 5000, debug: bool = False, log_dirs=None
+    host: str = "127.0.0.1",
+    port: int = 5000,
+    debug: bool = False,
+    log_dirs: list[str] | None = None,
 ) -> None:
     """Configure and start the dashboard server."""
     if log_dirs:
         scanner.add_dirs(log_dirs)
-    log_level = logging.DEBUG if debug else logging.INFO
+    log_level: int = logging.DEBUG if debug else logging.INFO
     app.logger.setLevel(log_level)
     logger.setLevel(log_level)
     logger.info(f"Fenn dashboard started at http://{host}:{port}")
@@ -353,8 +368,8 @@ def run(
 # --------------------------------------------------------------------------- #
 
 
-def main():
-    parser = argparse.ArgumentParser(
+def main() -> None:
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
         prog="fenn-dashboard",
         description="Fenn Dashboard — browse fnxml log files in your browser",
     )
@@ -367,7 +382,7 @@ def main():
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--debug", action="store_true")
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
     run(host=args.host, port=args.port, debug=args.debug, log_dirs=args.log_dir)
 
 
