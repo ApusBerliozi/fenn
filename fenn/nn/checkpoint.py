@@ -54,13 +54,6 @@ class Checkpoint:
         """Set up the checkpoint directory and checks."""
         self.dir.mkdir(parents=True, exist_ok=True)
 
-        if self.epochs is None and not self.save_best:
-            logger.warning(
-                "Checkpoint configuration is passed, but both `epochs` and `save_best` are unset.\n"
-                "Models will not be checkpointed."
-            )
-            return
-
         if self.epochs is not None:
             logger.info(
                 f"Checkpointing enabled. Checkpoints will be saved to {self.dir} every {self.epochs} epochs."
