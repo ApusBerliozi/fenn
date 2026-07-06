@@ -1,13 +1,17 @@
 """Fenn Dashboard — Flask application for browsing fnxml log files."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import secrets
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from flask import (
     Flask,
+    Response,
     abort,
     g,
     jsonify,
@@ -18,6 +22,7 @@ from flask import (
     url_for,
 )
 from flask_wtf.csrf import CSRFError, CSRFProtect
+from werkzeug.exceptions import HTTPException
 
 from fenn.logging import logger
 
@@ -58,7 +63,7 @@ scanner = FennScanner()
 
 
 @app.context_processor
-def _inject_current_user():
+def _inject_current_user() -> dict[str, Any]:
     return {"current_user": dashboard_auth.current_user()}
 
 
@@ -74,7 +79,7 @@ _STORED_TOKEN_OFFLINE_MESSAGE = (
 )
 
 
-def _try_stored_session():
+def _try_stored_session() -> Response | None:
     """Re-establish a Flask session from ``~/.fenn/dashboard_session.json``.
 
     Returns ``None`` if the caller should proceed normally, or a Flask
@@ -112,7 +117,7 @@ def _try_stored_session():
 
 
 @app.before_request
-def _require_login():
+def _require_login() -> Response | None:
     endpoint = request.endpoint
     if endpoint in _PUBLIC_ENDPOINTS:
         return None
@@ -127,12 +132,15 @@ def _require_login():
 
 
 @app.errorhandler(CSRFError)
-def _csrf_failed(_e):
-    return render_template(
-        "connect.html",
-        error_message="Form expired. Please try again.",
-        info_message=None,
-    ), 400
+def _csrf_failed(_e: CSRFError) -> tuple[str, int]:
+    return (
+        render_template(
+            "connect.html",
+            error_message="Form expired. Please try again.",
+            info_message=None,
+        ),
+        400,
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -141,12 +149,12 @@ def _csrf_failed(_e):
 
 
 @app.template_filter("duration")
-def duration_filter(seconds):
+def duration_filter(seconds: float) -> str:
     return scanner.format_duration(seconds)
 
 
 @app.template_filter("filesize")
-def filesize_filter(size):
+def filesize_filter(size: int) -> str:
     return scanner.format_size(size)
 
 
@@ -161,17 +169,17 @@ def short_id_filter(session_id: str) -> str:
 
 
 @app.route("/")
-def index():
+def index() -> str:
     return render_template("index.html", **scanner.get_overview())
 
 
 @app.route("/project/<project_name>")
-def project(project_name: str):
+def project(project_name: str) -> str:
     return render_template("project.html", **scanner.get_project(project_name))
 
 
 @app.route("/session/<project_name>/<session_id>", endpoint="session")
-def session_view(project_name: str, session_id: str):
+def session_view(project_name: str, session_id: str) -> str:
     data = scanner.get_session(project_name, session_id)
     if data is None:
         abort(404)
@@ -179,12 +187,12 @@ def session_view(project_name: str, session_id: str):
 
 
 @app.route("/api/overview")
-def api_overview():
+def api_overview() -> Response:
     return jsonify(scanner.get_overview())
 
 
 @app.route("/api/session/<project_name>/<session_id>")
-def api_session(project_name: str, session_id: str):
+def api_session(project_name: str, session_id: str) -> Response:
     data = scanner.get_session(project_name, session_id)
     if data is None:
         abort(404)
@@ -198,12 +206,20 @@ _MAX_LIMIT = 200
 _DEFAULT_LIMIT = 20
 
 
-def _api_error(code: str, message: str, param: str | None = None):
+def _api_error(
+    code: str, message: str, param: str | None = None
+) -> tuple[Response, int]:
     """Standard 400 envelope so clients can branch on `error.code`."""
     body = {"error": {"code": code, "message": message}}
     if param is not None:
         body["error"]["param"] = param
     return jsonify(body), 400
+
+
+class _ApiBadRequest(Exception):
+    def __init__(self, message: str, param: str | None = None) -> None:
+        self.message = message
+        self.param = param
 
 
 def _parse_int_arg(
@@ -220,18 +236,17 @@ def _parse_int_arg(
     return v
 
 
-class _ApiBadRequest(Exception):
-    def __init__(self, message: str, param: str | None = None):
-        self.message = message
-        self.param = param
-
-
 @app.route("/api/sessions")
-def api_sessions():
+def api_sessions() -> Response:
     """Filtered, sorted, paginated session listing.
 
-    Query params: project, status, limit (1..200, default 20), offset (>=0,
-    default 0), sort (field, optionally ``-`` prefixed for descending).
+    Query params:
+        project,
+        status,
+        limit (1..200, default 20),
+        offset (>=0, default 0),
+        sort (field, optionally ``-`` prefixed for descending),
+        started_after, started_before (timestamps formatted as ``YYYY-MM-DD HH:MM:SS``).
     """
     try:
         project_name = request.args.get("project") or None
@@ -242,10 +257,38 @@ def api_sessions():
         )
         offset = _parse_int_arg("offset", request.args.get("offset"), 0, 0, 1_000_000)
 
+        started_after = None
+        started_after_raw = request.args.get("started_after") or None
+        if started_after_raw is not None:
+            try:
+                started_after = datetime.strptime(
+                    started_after_raw, "%Y-%m-%d %H:%M:%S"
+                )
+            except ValueError:
+                raise _ApiBadRequest(
+                    "started_after must be formatted as YYYY-MM-DD HH:MM:SS",
+                    "started_after",
+                )
+
+        started_before = None
+        started_before_raw = request.args.get("started_before") or None
+        if started_before_raw is not None:
+            try:
+                started_before = datetime.strptime(
+                    started_before_raw, "%Y-%m-%d %H:%M:%S"
+                )
+            except ValueError:
+                raise _ApiBadRequest(
+                    "started_before must be formatted as YYYY-MM-DD HH:MM:SS",
+                    "started_before",
+                )
+
         try:
             result = scanner.list_sessions(
                 project=project_name,
                 status=status,
+                started_after=started_after,
+                started_before=started_before,
                 limit=limit,
                 offset=offset,
                 sort=sort,
@@ -263,7 +306,7 @@ def api_sessions():
 
 
 @app.errorhandler(404)
-def not_found(_e):
+def not_found(_e: HTTPException) -> tuple[str, int]:
     return render_template("404.html", **scanner.get_overview()), 404
 
 
@@ -279,7 +322,7 @@ _INVALID_TOKEN_MESSAGE = "Invalid or expired token."
 
 
 @app.route("/connect", methods=["GET", "POST"])
-def connect():
+def connect() -> Response:
     # Already signed in → bounce to home.
     if dashboard_auth.current_user() is not None:
         return redirect(url_for("index"))
@@ -289,7 +332,7 @@ def connect():
     info_message = session.pop("pending_info", None)
 
     if request.method == "GET":
-        return render_template(
+        return render_template(  # type: ignore[return-value]
             "connect.html", error_message=None, info_message=info_message
         )
 
@@ -297,13 +340,13 @@ def connect():
     try:
         user = dashboard_auth.validate_token(token)
     except dashboard_auth.InvalidTokenError:
-        return render_template(
+        return render_template(  # type: ignore[return-value]
             "connect.html",
             error_message=_INVALID_TOKEN_MESSAGE,
             info_message=None,
         ), 401
     except dashboard_auth.AuthUnreachableError:
-        return render_template(
+        return render_template(  # type: ignore[return-value]
             "connect.html",
             error_message=_NETWORK_ERROR_MESSAGE,
             info_message=None,
@@ -320,7 +363,7 @@ def connect():
 
 
 @app.route("/logout", methods=["POST"])
-def logout():
+def logout() -> Response:
     session.clear()
     # Also drop the disk cache — otherwise the next request would
     # silently re-establish the same session via _try_stored_session().
@@ -334,7 +377,10 @@ def logout():
 
 
 def run(
-    host: str = "127.0.0.1", port: int = 5000, debug: bool = False, log_dirs=None
+    host: str = "127.0.0.1",
+    port: int = 5000,
+    debug: bool = False,
+    log_dirs: list[str] | None = None,
 ) -> None:
     """Configure and start the dashboard server."""
     if log_dirs:
@@ -353,7 +399,7 @@ def run(
 # --------------------------------------------------------------------------- #
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="fenn-dashboard",
         description="Fenn Dashboard — browse fnxml log files in your browser",
