@@ -34,9 +34,6 @@ class Node(BaseNode[_PrepResult, _ExecResult, _PostResult]):
     def exec_fallback(self, prep_res: _PrepResult, exc: Exception) -> _ExecResult: ...
     def _exec(self, prep_res: _PrepResult) -> _ExecResult: ...
 
-class BatchNode(Node[list[_PrepResult] | None, list[_ExecResult], _PostResult]):
-    def _exec(self, items: list[_PrepResult] | None) -> list[_ExecResult]: ...
-
 class Flow(BaseNode[_PrepResult, Any, _PostResult]):
     start_node: BaseNode[Any, Any, Any] | None
 
@@ -56,58 +53,6 @@ class Flow(BaseNode[_PrepResult, Any, _PostResult]):
     def post(
         self, shared: SharedData, prep_res: _PrepResult, exec_res: Any
     ) -> _PostResult: ...
-
-class BatchFlow(Flow[list[Params] | None, Any, _PostResult]):
-    def _run(self, shared: SharedData) -> _PostResult: ...
-
-class AsyncNode(Node[_PrepResult, _ExecResult, _PostResult]):
-    async def prep_async(self, shared: SharedData) -> _PrepResult: ...
-    async def exec_async(self, prep_res: _PrepResult) -> _ExecResult: ...
-    async def exec_fallback_async(
-        self, prep_res: _PrepResult, exc: Exception
-    ) -> _ExecResult: ...
-    async def post_async(
-        self, shared: SharedData, prep_res: _PrepResult, exec_res: _ExecResult
-    ) -> _PostResult: ...
-    async def _exec(self, prep_res: _PrepResult) -> _ExecResult: ...
-    async def run_async(self, shared: SharedData) -> _PostResult: ...
-    async def _run_async(self, shared: SharedData) -> _PostResult: ...
-    def _run(self, shared: SharedData) -> _PostResult: ...
-
-class AsyncBatchNode(
-    AsyncNode[list[_PrepResult] | None, list[_ExecResult], _PostResult],
-    BatchNode[list[_PrepResult] | None, list[_ExecResult], _PostResult],
-):
-    async def _exec(self, items: list[_PrepResult] | None) -> list[_ExecResult]: ...
-
-class AsyncParallelBatchNode(
-    AsyncNode[list[_PrepResult] | None, list[_ExecResult], _PostResult],
-    BatchNode[list[_PrepResult] | None, list[_ExecResult], _PostResult],
-):
-    async def _exec(self, items: list[_PrepResult] | None) -> list[_ExecResult]: ...
-
-class AsyncFlow(
-    Flow[_PrepResult, Any, _PostResult], AsyncNode[_PrepResult, Any, _PostResult]
-):
-    async def _orch_async(
-        self, shared: SharedData, params: Params | None = None
-    ) -> Any: ...
-    async def _run_async(self, shared: SharedData) -> _PostResult: ...
-    async def post_async(
-        self, shared: SharedData, prep_res: _PrepResult, exec_res: Any
-    ) -> _PostResult: ...
-
-class AsyncBatchFlow(
-    AsyncFlow[list[Params] | None, Any, _PostResult],
-    BatchFlow[list[Params] | None, Any, _PostResult],
-):
-    async def _run_async(self, shared: SharedData) -> _PostResult: ...
-
-class AsyncParallelBatchFlow(
-    AsyncFlow[list[Params] | None, Any, _PostResult],
-    BatchFlow[list[Params] | None, Any, _PostResult],
-):
-    async def _run_async(self, shared: SharedData) -> _PostResult: ...
 
 class LLMClient:
     provider: str
