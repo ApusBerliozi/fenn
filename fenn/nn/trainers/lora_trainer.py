@@ -21,7 +21,7 @@ from fenn.nn.checkpoint import Checkpoint
 from .trainer import Trainer
 
 try:
-    from peft import (
+    from peft import (  # ty: ignore[unresolved-import]
         LoraConfig,
         TaskType,
         get_peft_model,
@@ -103,7 +103,7 @@ class LoRATrainer(Trainer):
                 f"Choose from: {sorted(_SUPPORTED_TASK_TYPES)}"
             )
 
-        lora_config = LoraConfig(
+        lora_config = LoraConfig(  # ty: ignore[call-non-callable]
             task_type=getattr(TaskType, task_type_upper),
             r=r,
             lora_alpha=lora_alpha,
