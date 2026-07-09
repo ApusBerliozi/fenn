@@ -21,13 +21,16 @@ from fenn.nn.checkpoint import Checkpoint
 from .trainer import Trainer
 
 try:
-    from peft import LoraConfig, TaskType, get_peft_model
+    from peft import (  # ty: ignore[unresolved-import]
+        LoraConfig,
+        TaskType,
+        get_peft_model,
+    )
 
     PEFT_AVAILABLE = True
 except ImportError:
     PEFT_AVAILABLE = False
-    LoraConfig = None  # type: ignore
-    TaskType = None  # type: ignore
+    LoraConfig = None  # ty: ignore[invalid-assignment]
 
 _SUPPORTED_TASK_TYPES = {
     "SEQ_CLS",
@@ -100,13 +103,13 @@ class LoRATrainer(Trainer):
                 f"Choose from: {sorted(_SUPPORTED_TASK_TYPES)}"
             )
 
-        lora_config = LoraConfig(
+        lora_config = LoraConfig(  # ty: ignore[call-non-callable]
             task_type=getattr(TaskType, task_type_upper),
             r=r,
             lora_alpha=lora_alpha,
             lora_dropout=lora_dropout,
             target_modules=target_modules,
-            bias=bias,
+            bias=bias,  # ty: ignore[invalid-argument-type]
         )
         model = get_peft_model(model, lora_config)
         model.print_trainable_parameters()
@@ -128,7 +131,7 @@ class LoRATrainer(Trainer):
 
         super().__init__(
             model=model,
-            loss_fn=loss_fn,  # type: ignore[arg-type]
+            loss_fn=loss_fn,  # ty: ignore[invalid-argument-type]
             optim=optim,
             device=device,
             early_stopping_patience=early_stopping_patience,
@@ -334,9 +337,9 @@ class LoRATrainer(Trainer):
                     state.patience_counter = 0
                 else:
                     state.patience_counter += 1
-
-                if state.acc > state.best_acc:
-                    state.best_acc = state.acc
+                if state.acc is not None:
+                    if state.acc > state.best_acc:
+                        state.best_acc = state.acc
 
             # --- CHECKPOINTING ---
             if self._should_save_checkpoint(epoch, is_last_epoch=(epoch == epochs)):
